@@ -74,16 +74,27 @@ class HappyMove(Node):  # 簡単な移動クラス
             return True
         return False
             
-            
-
+    def draw_square(self, x):
+        count = 0
+        while rclpy.ok():
+            if self.move_distance(x):
+                if self.rotate_angle(math.pi/2):
+                    self.x0 = self.x
+                    self.y0 = self.y
+                    self.yaw0 = self.yaw
+                    count +=1
         
+            if count == 4:
+                rclpy.spin_once(self)
+                break
+            rclpy.spin_once(self)
+
     def happy_move(self, distance, angle, time, linear, angular):  # 簡単な状態遷移
-        state = 1
+        state = 2
         self.start_time = self.get_clock().now()
 
         if state == 0:
             while rclpy.ok():
-                print(0)
                 if state == 0:
                     if self.move_distance(distance):
                         state = 1
@@ -93,13 +104,17 @@ class HappyMove(Node):  # 簡単な移動クラス
                 else:
                     print('エラー状態')
                 rclpy.spin_once(self)
-        else:
+
+        elif state == 1:
             self.set_vel(linear, angular)
             self.duration_time = Duration(seconds = time)
             while rclpy.ok():
                 if self.move_time(self.duration_time):
                     break
                 rclpy.spin_once(self)
+        else:
+            self.draw_square(distance)
+
 
 def main(args=None):  # main関数
     rclpy.init(args=args)
