@@ -63,27 +63,50 @@ class HappyMove(Node):  # 簡単な移動クラス
 
     def timer_callback(self):  # タイマーのコールバック関数
         self.pub.publish(self.vel)  # 速度指令メッセージのパブリッシュ 
-        
-    def happy_move(self,  distance, angle):  # 簡単な状態遷移
-        state = 0
-        while rclpy.ok():
-            if state == 0:
-                if self.move_distance(distance):
-                    state = 1
-            elif state == 1:                
-                if self.rotate_angle(angle):
-                    break
-            else:
-                print('エラー状態')
-            rclpy.spin_once(self)
 
+    def move_time(self, time):
+        now_time = self.get_clock().now()
+        error = 0.01
+        diff = now_time - start_time
+        if diff < error:
+            self.set_vel(0.0, 0.0)
+            rclpy.spin_once(self)
+            return True
+        return False
+            
+            
+
+        
+    def happy_move(self, distance, angle, time, linear, angular):  # 簡単な状態遷移
+        state = 1
+        start_time = self.get_clock().now()
+
+        if state == 0:
+            while rclpy.ok():
+                print(0)
+                if state == 0:
+                    if self.move_distance(distance):
+                        state = 1
+                elif state == 1:                
+                    if self.rotate_angle(angle):
+                        break
+                else:
+                    print('エラー状態')
+                rclpy.spin_once(self)
+        else:
+            self.set_vel(linear, angular)
+            print(1)
+            while rclpy.ok():
+                if move_time(time):
+                    break
+                rclpy.spin_once(self)
 
 def main(args=None):  # main関数
     rclpy.init(args=args)
     node = HappyMove()
 
     try:
-        node.happy_move(2.0, math.pi/2)
+        node.happy_move(2.0, math.pi/2, 10.0, 1.0, math.pi/3)
     except KeyboardInterrupt:
         print('Ctrl+Cが押されました．')     
     except ExternalShutdownException:
