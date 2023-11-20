@@ -7,6 +7,7 @@ from rclpy.executors import ExternalShutdownException
 from geometry_msgs.msg import Twist  # Twistメッセージ型をインポート
 from nav_msgs.msg import Odometry    # Odometryメッセージ型をインポート
 from tf_transformations import euler_from_quaternion 
+from rclpy.duration import Duration
 
 
 class HappyMove(Node):  # 簡単な移動クラス
@@ -66,9 +67,8 @@ class HappyMove(Node):  # 簡単な移動クラス
 
     def move_time(self, time):
         now_time = self.get_clock().now()
-        error = 0.01
-        diff = now_time - start_time
-        if diff < error:
+        diff = now_time - self.start_time
+        if diff > time:
             self.set_vel(0.0, 0.0)
             rclpy.spin_once(self)
             return True
@@ -79,7 +79,7 @@ class HappyMove(Node):  # 簡単な移動クラス
         
     def happy_move(self, distance, angle, time, linear, angular):  # 簡単な状態遷移
         state = 1
-        start_time = self.get_clock().now()
+        self.start_time = self.get_clock().now()
 
         if state == 0:
             while rclpy.ok():
@@ -95,9 +95,9 @@ class HappyMove(Node):  # 簡単な移動クラス
                 rclpy.spin_once(self)
         else:
             self.set_vel(linear, angular)
-            print(1)
+            self.duration_time = Duration(seconds = time)
             while rclpy.ok():
-                if move_time(time):
+                if self.move_time(self.duration_time):
                     break
                 rclpy.spin_once(self)
 
