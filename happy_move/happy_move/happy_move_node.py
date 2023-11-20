@@ -51,9 +51,15 @@ class HappyMove(Node):  # 簡単な移動クラス
             return True
 
     def rotate_angle(self, angle):  # 指定した角度angleを回転する
-        # このメソッドは間違っています．move_distanceを参考に完成させてください．
-        self.set_vel(0.0, 0.25)
-        return False
+        error = 0.01
+        diff = angle - self.yaw
+        if math.fabs(diff) > error:
+            self.set_vel(0.0, 0.25)
+            return False
+        else:
+            self.set_vel(0.0, 0.0)
+            rclpy.spin_once(self)
+            return True
 
     def timer_callback(self):  # タイマーのコールバック関数
         self.pub.publish(self.vel)  # 速度指令メッセージのパブリッシュ 
