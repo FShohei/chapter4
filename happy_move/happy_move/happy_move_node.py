@@ -53,9 +53,20 @@ class HappyMove(Node):  # 簡単な移動クラス
 
     def rotate_angle(self, angle):  # 指定した角度angleを回転する
         error = 0.01
-        diff = angle - self.yaw
-        if math.fabs(diff) > error:
-            self.set_vel(0.0, 0.25)
+
+        # 目標の角度を0からpiの値で設定
+        target_angle = self.yaw0 + math.pi + angle 
+        now_angle = self.yaw * math.pi
+
+        if target_angle >= (math.pi * 2):
+            target_angle = target_angle % (math.pi * 2)
+
+        if now_angle >= (math.pi * 2):
+            now_angle = now_angle % (math.pi * 2)
+
+        diff = target_angle - now_angle
+        if abs(diff) > error:
+            self.set_vel(0.0, 0.1)
             return False
         else:
             self.set_vel(0.0, 0.0)
