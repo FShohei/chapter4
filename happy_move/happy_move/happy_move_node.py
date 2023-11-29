@@ -100,6 +100,7 @@ class HappyMove(Node):  # 簡単な移動クラス
                 break
             rclpy.spin_once(self)
 
+    # 停止ができない
     def draw_circle(self, r):
         vel = 0.25
         angler = vel / r
