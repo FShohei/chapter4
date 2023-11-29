@@ -100,8 +100,30 @@ class HappyMove(Node):  # 簡単な移動クラス
                 break
             rclpy.spin_once(self)
 
-    def happy_move(self, distance, angle, time, linear, angular):  # 簡単な状態遷移
-        state = 2
+    def draw_circle(self, r):
+        vel = 0.25
+        angler = vel / r
+        error = 0.01
+        count = 0
+
+        while rclpy.ok():
+            if count == 0:
+                count = 1
+                self.set_vel(vel, angler)
+                rclpy.spin_once(self)
+            elif count == 2:
+                rclpy.spin_once(self)
+                break
+            
+            if self.yaw == 0:
+                self.set_vel(0.0, 0.0)
+                count = 2
+                rclpy.spin_once(self)
+                
+            rclpy.spin_once(self)
+
+    def happy_move(self, distance, angle, time, linear, angular, r):  # 簡単な状態遷移
+        state = 3
         self.start_time = self.get_clock().now()
 
         if state == 0:
@@ -123,8 +145,10 @@ class HappyMove(Node):  # 簡単な移動クラス
                 if self.move_time(self.duration_time):
                     break
                 rclpy.spin_once(self)
-        else:
+        elif state == 2:
             self.draw_square(distance)
+        else:
+            self.draw_circle(r)
 
 
 def main(args=None):  # main関数
@@ -132,7 +156,7 @@ def main(args=None):  # main関数
     node = HappyMove()
 
     try:
-        node.happy_move(2.0, math.pi/2, 10.0, 1.0, math.pi/3)
+        node.happy_move(2.0, math.pi/2, 10.0, 1.0, math.pi/3, 2.0)
     except KeyboardInterrupt:
         print('Ctrl+Cが押されました．')     
     except ExternalShutdownException:
