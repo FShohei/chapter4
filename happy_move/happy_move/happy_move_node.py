@@ -56,7 +56,7 @@ class HappyMove(Node):  # 簡単な移動クラス
 
         # 目標の角度を0からpiの値で設定
         target_angle = self.yaw0 + math.pi + angle 
-        now_angle = self.yaw * math.pi
+        now_angle = self.yaw + math.pi
 
         if target_angle >= (math.pi * 2):
             target_angle = target_angle % (math.pi * 2)
