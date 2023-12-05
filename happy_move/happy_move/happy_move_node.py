@@ -18,6 +18,7 @@ class HappyMove(Node):  # 簡単な移動クラス
         self.timer = self.create_timer(0.01, self.timer_callback)
         self.x, self.y, self.yaw = 0.0, 0.0, 0.0
         self.x0, self.y0, self.yaw0 = 0.0, 0.0, 0.0
+        self.liner, self.angular = 0.0, 0.0
         self.vel = Twist()  # Twist メッセージ型インスタンスの生成
         self.set_vel(0.0, 0.0)  # 速度の初期化
  
@@ -31,11 +32,19 @@ class HappyMove(Node):  # 簡単な移動クラス
         (roll, pitch, yaw) = tf_transformations.euler_from_quaternion(
             (q_x, q_y, q_z, q_w))
         return x, y, yaw
+
+    def get_twist(self, msg):
+        liner = msg.twist.twist.linear.x
+        angular = msg.twist.twist.angular.z
+
+        return liner, angular
   
     def odom_cb(self, msg):         # オドメトリのコールバック関数
         self.x, self.y, self.yaw = self.get_pose(msg)
         self.get_logger().info(
-            f'x={self.x: .2f} y={self.y: .2f}[m] yaw={self.yaw: .2f}[rad/s]')     
+            f'x={self.x: .2f} y={self.y: .2f}[m] yaw={self.yaw: .2f}[rad/s]')    
+
+        self.liner, self.angular = self.get_twist(msg)
     
     def set_vel(self, linear, angular):  # 速度を設定する
         self.vel.linear.x = linear   # [m/s]
@@ -108,6 +117,7 @@ class HappyMove(Node):  # 簡単な移動クラス
         count = 0
 
         while rclpy.ok():
+            self.show_tire_radius()
             if count == 0:
                 count = 1
                 self.set_vel(vel, angler)
@@ -116,7 +126,7 @@ class HappyMove(Node):  # 簡単な移動クラス
                 rclpy.spin_once(self)
                 break
             
-            if self.yaw == 0:
+            if self.yaw == 0 & count == 1:
                 self.set_vel(0.0, 0.0)
                 count = 2
                 rclpy.spin_once(self)
@@ -135,9 +145,21 @@ class HappyMove(Node):  # 簡単な移動クラス
                     break
             rclpy.spin_once(self)
 
+    def show_tire_radius(self):
+        Vel = self.liner
+        Omega = self.angular
+
+        d = 143.5 / 100
+        r = 70 / 100
+
+        omega_left = (Vel - Omega * d) / r
+        omega_right = (Vel + Omega * d) / r
+
+        self.get_logger().info(
+            f'omega_left={omega_left: .2f}[rad/s] omega_right={omega_right: .2f}[rad/s]') 
 
     def happy_move(self, distance, angle, time, linear, angular, r, x, y):  # 簡単な状態遷移
-        state = 4
+        state = 3
         self.start_time = self.get_clock().now()
 
         if state == 0:
