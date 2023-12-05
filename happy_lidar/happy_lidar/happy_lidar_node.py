@@ -65,6 +65,48 @@ class HappyLidar(Node):  # 簡単なLiDARクラス
             time.sleep(0.1)  # 0.1 [s]
             steps += 1
     
+    def happy_lidar_2(self):
+        steps = 0
+        self.load_gazebo_models()  # ドアのロード
+        time.sleep(3)              # ドアがシミュレータに反映されるまで少し待つ
+        self.set_vel(0.0, 0.0)     # 停止  
+        rclpy.spin_once(self)      # コールバック関数をよび出す 
+
+        wighd = 28.7 + 5.0
+        temp_angle = math.atan2(b/2, 1)
+
+        while rclpy.ok():
+            print(f'step={steps}')  
+            count = 0       
+            if steps == 100: 
+                self.delete_gazebo_models()   # ドアの削除（ドアオープン）    
+
+            for i in range(360):
+                if (0 <= i and i <= temp_angle) or ((math.pi * 2 - temp_angle) <= i and i <= 360):
+                    dist = 1 / cos(i)
+                    if self.scan.ranges[i] > dist:
+                        count += 1
+                    
+                if (temp_angle <= i and i <= 90) or ((270 <= i and i <= (math.pi * 2 - temp_angle))):
+                    dist = wighd/(2*sin(i))
+                    if self.scan.range[i] > dist:
+                        count += 1
+            
+            if count == 181: # 0-90, 270-359 is OK
+                self.set_vel(0.2, 0.0)
+            else:
+                self.set_vel(0.0, 0.0)
+                
+            rclpy.spin_once(self)
+            # self.print_lidar_info() # scanトピックの値を表示するときはコメントアウト
+            print(f'r[{  0}]={self.scan.ranges[0]}')     # 前
+            print(f'r[{ 90}]={self.scan.ranges[90]}')    # 左
+            print(f'r[{180}]={self.scan.ranges[180]}')   # 後
+            print(f'r[{270}]={self.scan.ranges[270]}')   # 右
+  
+            time.sleep(0.1)  # 0.1 [s]
+            steps += 1
+
     def print_lidar_info(self):
         # シミュレーションのLiDAR (HILS-LFCD LDS) は全周360[°] 計測可能。計測角度は-180[°]から180[°]。
         # ROSは右手系、進行方向x軸、左方向y軸、上方向がz軸（反時計まわりが正)。
